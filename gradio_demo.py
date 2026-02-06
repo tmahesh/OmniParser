@@ -1,21 +1,18 @@
 from typing import Optional
 
 import gradio as gr
-import numpy as np
 import torch
 from PIL import Image
 import io
 
 
-import base64, os
+import base64
 from omniparser_core import (
     get_caption_model,
     get_yolo_model,
     ScreenParserPipelineConfig,
     ScreenParserPipeline,
 )
-import torch
-from PIL import Image
 
 yolo_model = get_yolo_model(model_path='weights/icon_detect/model.pt')
 caption_model_processor = get_caption_model(model_name="florence2", model_name_or_path="weights/icon_caption_florence")
@@ -102,4 +99,4 @@ with gr.Blocks() as demo:
     )
 
 # demo.launch(debug=False, show_error=True, share=True)
-demo.launch(share=True, server_port=7861, server_name='127.0.0.1')
+demo.launch(share=False, server_port=8000, server_name='127.0.0.1')
