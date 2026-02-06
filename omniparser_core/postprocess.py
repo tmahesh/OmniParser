@@ -9,6 +9,8 @@ def int_box_area(box, w, h):
 
 def remove_overlap_new(boxes, iou_threshold, ocr_bbox=None):
     assert ocr_bbox is None or isinstance(ocr_bbox, List)
+    if not ocr_bbox:
+        ocr_bbox = None
 
     def box_area(box):
         return (box[2] - box[0]) * (box[3] - box[1])
@@ -85,5 +87,13 @@ def remove_overlap_new(boxes, iou_threshold, ocr_bbox=None):
                             }
                         )
             else:
-                filtered_boxes.append(box1)
+                filtered_boxes.append(
+                    {
+                        "type": "icon",
+                        "bbox": box1_elem["bbox"],
+                        "interactivity": True,
+                        "content": None,
+                        "source": "box_yolo_content_yolo",
+                    }
+                )
     return filtered_boxes
