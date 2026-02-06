@@ -59,7 +59,8 @@ def process(
             use_local_semantics=True,
         ),
     )
-    dino_labled_img, label_coordinates, parsed_content_list = pipeline.parse_image(image_input)
+    dino_labled_img, label_coordinates, parsed_content_list, metrics = pipeline.parse_image(image_input)
+    print("pipeline metrics (ms):", metrics)
     image = Image.open(io.BytesIO(base64.b64decode(dino_labled_img)))
     print('finish processing')
     parsed_content_list = '\n'.join([f'icon {i}: ' + str(v) for i,v in enumerate(parsed_content_list)])

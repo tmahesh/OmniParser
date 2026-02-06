@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import base64
 import io
+import time
 from dataclasses import dataclass
 from typing import Any
 
@@ -42,6 +43,16 @@ class OCRResult:
 class DetectionResult:
     icon_boxes_xyxy_ratio: torch.Tensor
     logits: torch.Tensor
+
+
+@dataclass
+class PipelineMetrics:
+    ocr_ms: float
+    icon_detect_ms: float
+    build_elements_ms: float
+    icon_caption_ms: float
+    render_ms: float
+    total_ms: float
 
 
 def build_draw_bbox_config(image: Image.Image) -> dict[str, float | int]:
@@ -202,18 +213,43 @@ class ScreenParserPipeline:
 
     def parse_image(
         self, image: Image.Image
-    ) -> tuple[str, dict[str, list[float]], list[dict[str, Any]]]:
+    ) -> tuple[str, dict[str, list[float]], list[dict[str, Any]], PipelineMetrics]:
+        t0 = time.perf_counter()
         image = image.convert("RGB")
         width, height = image.size
         image_np = np.asarray(image)
 
+        t = time.perf_counter()
         ocr_result = self.run_ocr(image)
+        ocr_ms = (time.perf_counter() - t) * 1000
+
+        t = time.perf_counter()
         detection_result = self.run_icon_detection(image)
+        icon_detect_ms = (time.perf_counter() - t) * 1000
+
+        t = time.perf_counter()
         filtered_elements, ocr_bbox_ratio = self.build_elements(
             ocr_result, detection_result, width, height
         )
+        build_elements_ms = (time.perf_counter() - t) * 1000
+
+        t = time.perf_counter()
         self.run_icon_caption(filtered_elements, ocr_bbox_ratio, image_np)
+        icon_caption_ms = (time.perf_counter() - t) * 1000
+
+        t = time.perf_counter()
         encoded_image, label_coordinates = self.render_labeled_image(
             image_np, filtered_elements, detection_result.logits, (width, height)
         )
-        return encoded_image, label_coordinates, filtered_elements
+        render_ms = (time.perf_counter() - t) * 1000
+
+        total_ms = (time.perf_counter() - t0) * 1000
+        metrics = PipelineMetrics(
+            ocr_ms=ocr_ms,
+            icon_detect_ms=icon_detect_ms,
+            build_elements_ms=build_elements_ms,
+            icon_caption_ms=icon_caption_ms,
+            render_ms=render_ms,
+            total_ms=total_ms,
+        )
+        return encoded_image, label_coordinates, filtered_elements, metrics

@@ -31,7 +31,8 @@ class Omniparser(object):
         image_bytes = base64.b64decode(image_base64)
         image = Image.open(io.BytesIO(image_bytes))
         print("image size:", image.size)
-        dino_labled_img, label_coordinates, parsed_content_list = self.pipeline.parse_image(
+        dino_labled_img, label_coordinates, parsed_content_list, metrics = self.pipeline.parse_image(
             image
         )
+        print("pipeline total ms:", round(metrics.total_ms, 2))
         return dino_labled_img, parsed_content_list
