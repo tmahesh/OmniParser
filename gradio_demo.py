@@ -99,4 +99,4 @@ with gr.Blocks() as demo:
     )
 
 # demo.launch(debug=False, show_error=True, share=True)
-demo.launch(share=False, server_port=8000, server_name='127.0.0.1')
+demo.launch(share=False, server_port=8080, server_name='0.0.0.0')
