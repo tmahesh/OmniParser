@@ -27,6 +27,10 @@ RUN --mount=type=cache,target=/root/.cache/uv uv pip install --system --no-cache
 # RUN --mount=type=cache,target=/root/.cache/pip pip install paddlepaddle-gpu==3.3.0 -i https://www.paddlepaddle.org.cn/packages/stable/cu118/
 # RUN --mount=type=cache,target=/root/.cache/pip pip install -r requirements.txt
 
+#download models
+RUN paddlex --pipeline OCR
+RUN hf download microsoft/Florence-2-base
+
 COPY . /app
 
 EXPOSE 8080
