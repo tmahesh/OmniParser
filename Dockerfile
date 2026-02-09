@@ -21,7 +21,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt /app/requirements.txt
 
 RUN pip install uv
-RUN --mount=type=cache,target=/root/.cache/uv uv pip install --system --no-cache paddlepaddle-gpu==3.3.0 -i https://www.paddlepaddle.org.cn/packages/stable/cu118/
+# RUN --mount=type=cache,target=/root/.cache/uv uv pip install --system --no-cache paddlepaddle-gpu==3.3.0 -i https://www.paddlepaddle.org.cn/packages/stable/cu118/
 RUN --mount=type=cache,target=/root/.cache/uv uv pip install --system --no-cache -r requirements.txt
 
 # RUN --mount=type=cache,target=/root/.cache/pip pip install paddlepaddle-gpu==3.3.0 -i https://www.paddlepaddle.org.cn/packages/stable/cu118/

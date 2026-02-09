@@ -29,7 +29,7 @@ def get_caption_model(
             )
         else:
             model = AutoModelForCausalLM.from_pretrained(
-                model_name_or_path, torch_dtype=torch.float16, trust_remote_code=True
+                "microsoft/Florence-2-base", torch_dtype=torch.float16, trust_remote_code=True
             ).to(device)
     else:
         raise ValueError(f"Unsupported caption model: {model_name}")

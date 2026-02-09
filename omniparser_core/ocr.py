@@ -13,7 +13,7 @@ reader = easyocr.Reader(["en"])
 
 paddle_ocr = PaddleOCR(
         lang="en",
-        device="gpu:0",
+        # device="gpu:0",
         use_doc_orientation_classify=False,
         use_doc_unwarping=False,
         use_textline_orientation=False,
