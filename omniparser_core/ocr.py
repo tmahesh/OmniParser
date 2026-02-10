@@ -1,3 +1,4 @@
+import os
 from typing import Union
 
 import cv2
@@ -11,57 +12,28 @@ from omniparser_core.rendering import get_xywh, get_xyxy
 
 reader = easyocr.Reader(["en"])
 
+
+def _use_paddle_gpu() -> bool:
+    return os.getenv("PADDLE_OCR_USE_GPU", "1").strip().lower() in {"1", "true", "yes", "on"}
+
+
 paddle_ocr = PaddleOCR(
-        lang="en",
-        # device="gpu:0",
-        use_doc_orientation_classify=False,
-        use_doc_unwarping=False,
-        use_textline_orientation=False,
-    )
-
-def _as_xyxy_quad(points):
-    # Normalize to 4-point quad for existing coordinate conversion helpers.
-    if points is None:
-        return None
-    arr = np.asarray(points).reshape(-1, 2)
-    if arr.shape[0] < 4:
-        return None
-    xs = arr[:, 0]
-    ys = arr[:, 1]
-    x1, y1, x2, y2 = float(xs.min()), float(ys.min()), float(xs.max()), float(ys.max())
-    return [[x1, y1], [x2, y1], [x2, y2], [x1, y2]]
-
-
-def _extract_from_paddle_predict(prediction, text_threshold):
-    # PaddleOCR 3.x predict output commonly has rec_text/rec_score/dt_polys.
-    if hasattr(prediction, "res"):
-        prediction = prediction.res
-
-    if isinstance(prediction, dict):
-        texts = prediction.get("rec_text") or prediction.get("texts") or []
-        scores = prediction.get("rec_score") or prediction.get("scores") or []
-        polys = prediction.get("dt_polys") or prediction.get("polys") or []
-        text_out, coord_out = [], []
-        for txt, score, poly in zip(texts, scores, polys):
-            if score is None or score >= text_threshold:
-                quad = _as_xyxy_quad(poly)
-                if quad is not None:
-                    text_out.append(txt)
-                    coord_out.append(quad)
-        return text_out, coord_out
-
-    return [], []
+    lang="en",
+    use_angle_cls=False,
+    use_gpu=_use_paddle_gpu(),
+    show_log=False,
+    max_batch_size=1024,
+    use_dilation=True,
+    det_db_score_mode="slow",
+    rec_batch_num=1024,
+)
 
 
 def _run_paddle_ocr(image_np, text_threshold):
     try:
-        predictions = paddle_ocr.predict(image_np)
-        text, coord = [], []
-        if predictions is not None:
-            for pred in predictions:
-                t, c = _extract_from_paddle_predict(pred, text_threshold)
-                text.extend(t)
-                coord.extend(c)
+        result = paddle_ocr.ocr(image_np, cls=False)[0]
+        coord = [item[0] for item in result if item[1][1] > text_threshold]
+        text = [item[1][0] for item in result if item[1][1] > text_threshold]
         return text, coord
     except Exception as e:
         print(f"PaddleOCR failed ({type(e).__name__}): {e}. Falling back to EasyOCR.")

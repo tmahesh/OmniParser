@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxext6 \
     libxrender1 \
     && rm -rf /var/lib/apt/lists/*
-
+    
 COPY requirements.txt /app/requirements.txt
 
 RUN pip install uv
@@ -28,8 +28,31 @@ RUN --mount=type=cache,target=/root/.cache/uv uv pip install --system --no-cache
 # RUN --mount=type=cache,target=/root/.cache/pip pip install -r requirements.txt
 
 #download models
-RUN paddlex --pipeline OCR
+#RUN paddlex --pipeline OCR
 RUN hf download microsoft/Florence-2-base
+
+RUN python - <<'PY'
+import numpy as np
+from paddleocr import PaddleOCR
+
+ocr = PaddleOCR(
+    lang="en",
+    use_angle_cls=False,
+    use_gpu=False,
+    show_log=False,
+    max_batch_size=1024,
+    use_dilation=True,
+    det_db_score_mode="slow",
+    rec_batch_num=1024,
+)
+
+img = np.zeros((64, 256, 3), dtype=np.uint8)
+try:
+    _ = ocr.ocr(img, cls=False)
+except Exception:
+    pass
+print("PaddleOCR model cache prepared.")
+PY
 
 COPY . /app
 
