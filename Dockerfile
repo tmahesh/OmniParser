@@ -20,12 +20,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     
 COPY requirements.txt /app/requirements.txt
 
-RUN pip install uv
-# RUN --mount=type=cache,target=/root/.cache/uv uv pip install --system --no-cache paddlepaddle-gpu==3.3.0 -i https://www.paddlepaddle.org.cn/packages/stable/cu118/
-RUN --mount=type=cache,target=/root/.cache/uv uv pip install --system --no-cache -r requirements.txt
+#RUN pip install uv
+#RUN --mount=type=cache,target=/root/.cache/uv uv pip install --system --no-cache -r requirements.txt
 
-# RUN --mount=type=cache,target=/root/.cache/pip pip install paddlepaddle-gpu==3.3.0 -i https://www.paddlepaddle.org.cn/packages/stable/cu118/
-# RUN --mount=type=cache,target=/root/.cache/pip pip install -r requirements.txt
+RUN --mount=type=cache,target=/root/.cache/pip pip install -r requirements.txt
 
 #download models
 #RUN paddlex --pipeline OCR
@@ -52,6 +50,19 @@ try:
 except Exception:
     pass
 print("PaddleOCR model cache prepared.")
+PY
+
+RUN python - <<'PY'
+import numpy as np
+import easyocr
+
+reader = easyocr.Reader(["en"], gpu=False)
+img = np.zeros((64, 256, 3), dtype=np.uint8)
+try:
+    _ = reader.readtext(img)
+except Exception:
+    pass
+print("EasyOCR model cache prepared.")
 PY
 
 COPY . /app

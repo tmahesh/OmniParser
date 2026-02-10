@@ -61,6 +61,7 @@ def check_ocr_box(
         text_threshold = 0.5 if easyocr_args is None else easyocr_args["text_threshold"]
         text, coord = _run_paddle_ocr(image_np, text_threshold)
     else:
+        print(f"Using easyOCR")
         if easyocr_args is None:
             easyocr_args = {}
         result = reader.readtext(image_np, **easyocr_args)
